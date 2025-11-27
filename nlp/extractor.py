@@ -1,3 +1,5 @@
+import json
+
 import spacy
 import re
 
@@ -56,3 +58,43 @@ def extract_birthday(text):
         return match.group()
     else:
         return None
+
+
+def extract_experience(text):
+    nlp = spacy.load('en_core_web_sm')
+
+    text = text.replace("\n", " ")
+    text = re.sub(r"\s+", " ", text)
+    entries_experience = []
+    date_pattern = r"(\b\d{4}\b|\bJan|\bFeb|\bMar|\bApr|\bMay|\bJun|\bJul|\bAug|\bSep|\bOct|\bNov|\bDec)"
+    document = nlp(text)
+    for sent in document.sents:
+        sent_text = sent.text.strip()
+
+        for ent in sent.ents:
+            if ent.label_ == "ORGANIZATION":
+                companies = ent.text
+
+        dates = re.findall(date_pattern, sent_text)
+
+
+        for chunk in sent.noun_chunks:
+           if any(keyword in chunk.text.lower() for keyword in ["engineer", "developer", "manager", "analyst", "designer","support","coordinator",""]):
+               job_title_candidates = [chunk.text]
+
+
+        if companies or dates or job_title_candidates:
+            entries_experience.append({
+                "job_title": job_title_candidates[0] if job_title_candidates else None,
+                "company": companies[0] if companies else None,
+                "start_date": dates[0] if len(dates) > 0 else None,
+                "end_date": dates[1] if len(dates) > 1 else None
+            })
+
+    return entries_experience
+
+
+
+
+
+

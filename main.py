@@ -1,6 +1,6 @@
 import json
 
-from nlp.extractor import extract_name, extract_email
+from nlp.extractor import *
 from parsers.pdf_parser import extract_from_pdf_file
 from parsers.doc_parser import extract_text_from_docx
 
@@ -24,6 +24,9 @@ def resume_parser_docx(resume_file):
     data = {
         "name": extract_name(text),
         "email": extract_email(text),
+        "phone": extract_phone_number(text),
+        "birthday": extract_birthday(text),
+
         "raw_text": text
     }
 

@@ -71,16 +71,20 @@ def extract_experience(text):
     for sent in document.sents:
         sent_text = sent.text.strip()
 
+        companies = []
+        dates = []
+        job_title_candidates = []
+
         for ent in sent.ents:
-            if ent.label_ == "ORGANIZATION":
-                companies = ent.text
+            if ent.label_ == "ORG":
+                companies.append(ent.text)
 
         dates = re.findall(date_pattern, sent_text)
 
 
         for chunk in sent.noun_chunks:
            if any(keyword in chunk.text.lower() for keyword in ["engineer", "developer", "manager", "analyst", "designer","support","coordinator",""]):
-               job_title_candidates = [chunk.text]
+               job_title_candidates.append(chunk.text)
 
 
         if companies or dates or job_title_candidates:
@@ -94,19 +98,19 @@ def extract_experience(text):
     return entries_experience
 
 
-with open("countries.json","r", encoding="utf-8") as file:
+with open("Database/countries.json","r", encoding="utf-8") as file:
     countries_data = json.load(file)
 
-with open("cities.json","r", encoding="utf-8") as file:
+with open("Database/cities.json","r", encoding="utf-8") as file:
     cities_data = json.load(file)
 
-with open("postal_codes.json","r", encoding="utf-8") as file:
+with open("Database/postal_codes.json","r", encoding="utf-8") as file:
     postal_codes_data = json.load(file)
 
 
 countries = set([c.lower() for c in countries_data["countries"]])
 cities = set([c.lower() for c in cities_data["cities"]])
-aliases = {k.lower(): v for k, v in cities_data["aliases"].items()}
+aliases = {k.lower(): v for k, v in countries_data["aliases"].items()}
 
 
 def extract_location(text):
@@ -124,24 +128,28 @@ def classify_location(text):
     entry = {
         "city": None,
         "ZIP": None,
-        "country": None,
+        "Country": None,
     }
 
-    check = text.lower().strip()
+    check = text.strip()
 
-    if check in cities:
+
+    if check.lower() in cities:
         entry["city"] = text
 
-    if check in countries:
-        entry["country"] = text
 
-    if check in aliases:
-        entry["country"] = text
+    if check.lower() in countries or check.lower() in aliases:
+        entry["Country"] = text
 
-    for country,pattern in postal_codes_data.items():
-        if re.match(pattern,country):
+
+    postal_patterns = postal_codes_data["patterns"]
+
+    for country_name, pattern in postal_patterns.items():
+        if re.match(pattern, check):
             entry["ZIP"] = text
-            entry["country"] = entry["country"] or country
+            if not entry["Country"]:
+                entry["Country"] = country_name
+
 
     return entry
 

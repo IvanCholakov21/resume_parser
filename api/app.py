@@ -9,19 +9,20 @@ async def parse_pdf(file: UploadFile = File(...)):
     filename = file.filename.lower()
 
     if filename.endswith(".pdf"):
-        parser = resume_parser_pdf(file)
+
         save_name = "uploaded.pdf"
+        parser = resume_parser_pdf
 
     elif filename.endswith(".docx"):
-        parser = resume_parser_docx(file)
+
         save_name = "uploaded.docx"
+        parser = resume_parser_docx
 
     else:
         raise HTTPException(status_code=400, detail="Invalid file type. Parser only supports PDF and DOCX files.")
 
-    async with open(save_name, "wb") as file:
-        content = await file.read()
-        await file.write(content)
+    with open(save_name, "wb") as f:
+        f.write(await file.read())
 
     return parser(save_name)
 

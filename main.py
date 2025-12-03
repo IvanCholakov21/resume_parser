@@ -14,11 +14,12 @@ def resume_parser_pdf(resume_file):
         "phone": extract_phone_number(text),
         "birthday": extract_birthday(text),
         "experience": extract_experience(text),
+        "location": extract_location(text),
         "raw_text": text
 
     }
 
-    return json.dump(data, indent=4)
+    return data
 
 
 def resume_parser_docx(resume_file):
@@ -30,11 +31,12 @@ def resume_parser_docx(resume_file):
         "phone": extract_phone_number(text),
         "birthday": extract_birthday(text),
         "experience": extract_experience(text),
+        "location": extract_location(text),
 
         "raw_text": text
     }
 
-    return json.dump(data, indent=4)
+    return data
 
 
 if __name__ == "__main__":

@@ -1,0 +1,25 @@
+{
+  "patterns": {
+    "Bulgaria": "^\\d{4}$",
+    "United States": "^\\d{5}(-\\d{4})?$",
+    "Canada": "^[A-Za-z]\\d[A-Za-z] ?\\d[A-Za-z]\\d$",
+    "United Kingdom": "^[A-Za-z]{1,2}\\d[A-Za-z\\d]? ?\\d[A-Za-z]{2}$",
+    "Germany": "^\\d{5}$",
+    "France": "^\\d{5}$",
+    "Italy": "^\\d{5}$",
+    "Spain": "^\\d{5}$",
+    "Netherlands": "^\\d{4} ?[A-Za-z]{2}$",
+    "Australia": "^\\d{4}$",
+    "New Zealand": "^\\d{4}$",
+    "India": "^\\d{6}$",
+    "China": "^\\d{6}$",
+    "Japan": "^\\d{3}-\\d{4}$",
+    "South Korea": "^\\d{5}$",
+    "Brazil": "^\\d{5}-?\\d{3}$",
+    "Mexico": "^\\d{5}$",
+    "South Africa": "^\\d{4}$",
+    "Switzerland": "^\\d{4}$",
+    "Belgium": "^\\d{4}$",
+    "Austria": "^\\d{4}$"
+  }
+}

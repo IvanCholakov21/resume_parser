@@ -94,6 +94,56 @@ def extract_experience(text):
     return entries_experience
 
 
+with open("countries.json","r", encoding="utf-8") as file:
+    countries_data = json.load(file)
+
+with open("cities.json","r", encoding="utf-8") as file:
+    cities_data = json.load(file)
+
+with open("postal_codes.json","r", encoding="utf-8") as file:
+    postal_codes_data = json.load(file)
+
+
+countries = set([c.lower() for c in countries_data["countries"]])
+cities = set([c.lower() for c in cities_data["cities"]])
+aliases = {k.lower(): v for k, v in cities_data["aliases"].items()}
+
+
+def extract_location(text):
+    document = nlp(text)
+
+    for ent in document.ents:
+        if ent.label_ == "GPE" or ent.label_ == "LOC":
+            return classify_location(ent.text)
+
+
+
+    return None
+
+def classify_location(text):
+    entry = {
+        "city": None,
+        "ZIP": None,
+        "country": None,
+    }
+
+    check = text.lower().strip()
+
+    if check in cities:
+        entry["city"] = text
+
+    if check in countries:
+        entry["country"] = text
+
+    if check in aliases:
+        entry["country"] = text
+
+    for country,pattern in postal_codes_data.items():
+        if re.match(pattern,country):
+            entry["ZIP"] = text
+            entry["country"] = entry["country"] or country
+
+    return entry
 
 
 

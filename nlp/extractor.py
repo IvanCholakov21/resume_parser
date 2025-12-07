@@ -1,13 +1,19 @@
 import json
+import unicodedata
 
 import spacy
 import re
 
 
 nlp = spacy.load('en_core_web_sm')
+TECH_KEYWORDS = [
+    "tensorflow", "pytorch", "rust", "go", "javascript",
+    "java", "python", "docker", "github", "gitlab","Java","C","C++","JS"
+]
 
 
 def extract_name(text):
+    text = clean_text(text)
     document = nlp(text)
 
 
@@ -42,14 +48,7 @@ def extract_phone_number(text):
 
 
 def extract_birthday(text):
-    pattern = r"""
-    ^(?:
-        (31[\/\.-](0?[13578]|1[02])[\/\.-](19|20)\d{2}) |
-        (30[\/\.-](0?[469]|11)[\/\.-](19|20)\d{2}) |
-        ((0?[1-9]|1\d|2[0-8])[\/\.-](0?2)[\/\.-](19|20)\d{2}) |
-        (29[\/\.-]0?2[\/\.-]((19|20)(04|08|12|16|20|24|28|32|36|40|44|48|52|56|60|64|68|72|76|80|84|88|92|96)))
-    )$
-    """
+    pattern = r"\b(0?[1-9]|[12][0-9]|3[01])[.\-/](0?[1-9]|1[0-2])[.\-/](19|20)\d{2}\b"
 
     regex = re.compile(pattern, re.VERBOSE)
 
@@ -76,18 +75,18 @@ def extract_experience(text):
         job_title_candidates = []
 
         for ent in sent.ents:
-            if ent.label_ == "ORG":
+            if ent.label_ == "ORG" and ent.text.lower() not in TECH_KEYWORDS:
                 companies.append(ent.text)
 
         dates = re.findall(date_pattern, sent_text)
 
 
         for chunk in sent.noun_chunks:
-           if any(keyword in chunk.text.lower() for keyword in ["engineer", "developer", "manager", "analyst", "designer","support","coordinator",""]):
+           if any(keyword in chunk.text.lower() for keyword in ["engineer", "developer", "manager", "analyst", "designer","support","coordinator"]):
                job_title_candidates.append(chunk.text)
 
 
-        if companies or dates or job_title_candidates:
+        if (companies and job_title_candidates) or (job_title_candidates and dates):
             entries_experience.append({
                 "job_title": job_title_candidates[0] if job_title_candidates else None,
                 "company": companies[0] if companies else None,
@@ -114,11 +113,39 @@ aliases = {k.lower(): v for k, v in countries_data["aliases"].items()}
 
 
 def extract_location(text):
+    text = clean_text(text)
     document = nlp(text)
+    entry = {
+        "city": None,
+        "ZIP": None,
+        "Country": None,
+    }
 
     for ent in document.ents:
-        if ent.label_ == "GPE" or ent.label_ == "LOC":
-            return classify_location(ent.text)
+
+
+            check = ent.text.lower().strip()
+
+            print(repr(ent.text), ent.label_)
+
+
+
+
+            if check.lower() in cities:
+                entry["city"] = check.lower()
+
+            if check.lower() in countries or check.lower() in aliases:
+                entry["Country"] = check.lower()
+
+            postal_patterns = postal_codes_data["patterns"]
+
+            for country_name, pattern in postal_patterns.items():
+                if re.match(pattern, check):
+                    entry["ZIP"] = check.lower()
+                    if not entry["Country"]:
+                        entry["Country"] = country_name
+    print(entry)
+    return entry
 
 
 
@@ -130,12 +157,15 @@ def classify_location(text):
         "ZIP": None,
         "Country": None,
     }
+    print(text)
+
+
 
     check = text.strip()
 
-
     if check.lower() in cities:
-        entry["city"] = text
+        entry["city"] = check.lower()
+
 
 
     if check.lower() in countries or check.lower() in aliases:
@@ -153,6 +183,14 @@ def classify_location(text):
 
     return entry
 
+
+def clean_text(text):
+    text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)
+    text = re.sub(r"\(cid:[0-9]+\]", " ", text)
+    text = unicodedata.normalize("NFKD", text)
+    text = re.sub(r"[^\w\s,.\-+:/]", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text
 
 
 

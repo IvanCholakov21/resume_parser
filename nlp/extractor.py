@@ -121,13 +121,19 @@ def extract_location(text):
         "Country": None,
     }
 
+
     for ent in document.ents:
 
 
             check = ent.text.lower().strip()
 
-            print(repr(ent.text), ent.label_)
 
+
+            for c in ent:
+                p = c.text.lower().strip()
+
+                if p in cities:
+                    entry["city"] = p
 
 
 
@@ -140,10 +146,9 @@ def extract_location(text):
             postal_patterns = postal_codes_data["patterns"]
 
             for country_name, pattern in postal_patterns.items():
-                if re.match(pattern, check):
+                if re.match(pattern, check) and entry["Country"] is not None:
                     entry["ZIP"] = check.lower()
-                    if not entry["Country"]:
-                        entry["Country"] = country_name
+
     print(entry)
     return entry
 
@@ -170,15 +175,14 @@ def classify_location(text):
 
     if check.lower() in countries or check.lower() in aliases:
         entry["Country"] = text
+        print(entry["Country"])
 
 
     postal_patterns = postal_codes_data["patterns"]
 
     for country_name, pattern in postal_patterns.items():
-        if re.match(pattern, check):
+        if re.match(pattern, check) and entry["Country"] is not None:
             entry["ZIP"] = text
-            if not entry["Country"]:
-                entry["Country"] = country_name
 
 
     return entry
